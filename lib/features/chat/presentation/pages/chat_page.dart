@@ -210,7 +210,9 @@ class _ChatPageState extends State<ChatPage>
                                             ),
                                           ),
                                           if (!isUser &&
-                                              messages.length == 2) ...[
+                                              (index == messages.length - 1 ||
+                                                  index ==
+                                                      messages.length - 2)) ...[
                                             SizedBox(height: 8.h),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -224,7 +226,7 @@ class _ChatPageState extends State<ChatPage>
 
                                           if (!isUser &&
                                               !m.isLoading &&
-                                              messages.length > 2) ...[
+                                              messages.length > 4) ...[
                                             SizedBox(height: 8.h),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -459,8 +461,7 @@ class _ChatPageState extends State<ChatPage>
   Widget _buildSuggestionButton(String text) {
     return GestureDetector(
       onTap: () {
-        _controller.text = text;
-        _send();
+        bloc.add(SendQuickReply(text));
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),

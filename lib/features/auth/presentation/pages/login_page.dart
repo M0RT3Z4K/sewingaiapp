@@ -72,6 +72,10 @@ class _LoginPageState extends State<LoginPage> {
             return _buildOtpForm(context, "", isAuthanticated: true);
           }
 
+          if (state is AuthInitial) {
+            return Center(child: CircularProgressIndicator());
+          }
+
           if (state is Authenticated) {
             return Center(child: CircularProgressIndicator());
           }

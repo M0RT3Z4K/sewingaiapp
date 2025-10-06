@@ -23,12 +23,70 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<LoadHistory>((event, emit) async {
       final user = await getCurrentUserUseCase();
 
-      emit(ChatLoading());
+      // اگه لیست خالیه، پیام خوشامد اضافه کن
+      if (_messages.isEmpty) {
+        final welcomeMessage = Message(
+          id: 'welcome_${DateTime.now().millisecondsSinceEpoch}',
+          text: 'سلام. مایلید با دوره های آموزشی مریم بانو آشنا بشید؟',
+          createdAt: DateTime.now(),
+          isFromUser: false,
+          isLoading: false,
+        );
+        _messages.add(welcomeMessage);
+      }
+
       emit(ChatLoaded(List.from(_messages), user));
     });
 
+    on<SendQuickReply>((event, emit) async {
+      User user = await getCurrentUserUseCase();
+
+      // اضافه کردن پیام کاربر
+      final userMessage = Message(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: event.reply,
+        createdAt: DateTime.now(),
+        isFromUser: true,
+        isLoading: false,
+      );
+      _messages.add(userMessage);
+
+      // تعیین پاسخ بات بر اساس انتخاب کاربر
+      String botResponse;
+      if (event.reply == 'بله') {
+        botResponse =
+            'عالی! لطفا از طریق لینک زیر وارد کانال ایتا شوید و توضیحات کامل را مطالعه کنید:\n\nhttps://eitaa.com/joinchat/581108722C65154713e7';
+      } else {
+        botResponse = 'سلام میتونی بهم کمک کنی؟';
+      }
+
+      final botMessage = Message(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: botResponse,
+        createdAt: DateTime.now(),
+        isFromUser: false,
+        isLoading: false,
+      );
+      _messages.add(botMessage);
+
+      emit(ChatLoaded(List.from(_messages), user));
+    });
+
+    on<ClearWelcomeMessages>((event, emit) async {
+      User user = await getCurrentUserUseCase();
+
+      // پاک کردن همه پیام‌هایی که isFromUser نیستن (پیام‌های خوشامد)
+      // و نگه داشتن فقط پیام‌هایی که کاربر خودش فرستاده
+      _messages.clear();
+
+      emit(ChatLoaded(List.from(_messages), user));
+    });
     on<SendUserMessage>((event, emit) async {
       User user = await getCurrentUserUseCase();
+
+      if (_messages.length <= 3) {
+        _messages.clear();
+      }
 
       print(event.text);
       try {
@@ -68,6 +126,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     on<SendImageMessage>((event, emit) async {
       User user = await getCurrentUserUseCase();
+
+      if (_messages.length <= 3) {
+        _messages.clear();
+      }
 
       final userImgMessage = Message(
         id: DateTime.now().millisecondsSinceEpoch.toString(),

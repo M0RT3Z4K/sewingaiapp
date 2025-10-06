@@ -14,3 +14,10 @@ class SendImageMessage extends ChatEvent {
   final File image;
   SendImageMessage(this.text, this.image);
 }
+
+class SendQuickReply extends ChatEvent {
+  final String reply;
+  SendQuickReply(this.reply);
+}
+
+class ClearWelcomeMessages extends ChatEvent {}

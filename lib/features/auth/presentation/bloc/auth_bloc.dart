@@ -34,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onInit(PageInitial event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
+    emit(AuthInitial());
     String? authToken = await getCachedToken();
     print(authToken);
     if (authToken != null && authToken != "123") {
