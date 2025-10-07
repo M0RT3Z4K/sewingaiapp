@@ -73,6 +73,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           hasButtons: true, // مهم! (بعد از پاسخ بات، دکمه‌ها نباید باشن
         );
       } else {
+        if (!_hasWelcomeBeenCleared) {
+          _messages.removeWhere((msg) => msg.isWelcomeMessage == true);
+          _hasWelcomeBeenCleared = true; // علامت بزن که پاک شده
+        }
         botResponse = 'سلام. چطور میتونم بهتون کمک کنم؟';
         botMessage = Message(
           id: DateTime.now().millisecondsSinceEpoch.toString(),

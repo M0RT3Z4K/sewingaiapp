@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
@@ -30,6 +31,7 @@ class _ChatPageState extends State<ChatPage>
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   var picked;
+  bool _showShadow = false;
 
   @override
   void initState() {
@@ -42,6 +44,25 @@ class _ChatPageState extends State<ChatPage>
       getCurrentUserUseCase: GetCurrentUser(repo),
     );
     bloc.add(LoadHistory());
+    _scrollController.addListener(() {
+      print(_scrollController.position.maxScrollExtent);
+      print(MediaQuery.of(context).size.height);
+
+      if (_scrollController.offset > 0 && !_showShadow) {
+        setState(() => _showShadow = true);
+      } else if (_scrollController.offset <= 0 && _showShadow) {
+        if (_scrollController.position.maxScrollExtent >
+            MediaQuery.of(context).size.height) {
+          setState(() => _showShadow = true);
+        } else {
+          setState(() => _showShadow = false);
+        }
+      }
+      if (_scrollController.offset >=
+          _scrollController.position.maxScrollExtent - 2) {
+        setState(() => _showShadow = false);
+      }
+    });
   }
 
   @override
@@ -77,12 +98,20 @@ class _ChatPageState extends State<ChatPage>
       endDrawer: Directionality(
         textDirection: TextDirection.rtl,
         child: Drawer(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.horizontal(
+              left: Radius.circular(17), // گوشه‌های سمت راست گرد
+            ),
+          ),
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.all(20.r),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.r,
+                    vertical: 15.h,
+                  ),
                   child: Text(
                     "منو",
                     style: TextStyle(
@@ -92,6 +121,7 @@ class _ChatPageState extends State<ChatPage>
                   ),
                 ),
                 ListTile(
+                  horizontalTitleGap: 5.w,
                   leading: Icon(Icons.logout),
                   title: Text("خروج"),
                   onTap: () {
@@ -107,19 +137,37 @@ class _ChatPageState extends State<ChatPage>
       ),
       appBar: AppBar(
         backgroundColor: Colors.white,
+        shadowColor: Colors.white,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        scrolledUnderElevation: 0,
         elevation: 0,
-        leadingWidth: 60.w,
+        bottom: _showShadow
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: Container(color: Color(0xffbfbfbf), height: 1),
+              )
+            : null,
+        leadingWidth: 45.w,
         leading: Padding(
           padding: EdgeInsets.only(left: 12.w),
-          child: CircleAvatar(
-            backgroundColor: Colors.grey[300],
-            child: Icon(Icons.person, color: Colors.grey[700]),
+          child: Icon(
+            Icons.account_circle_outlined,
+            size: 28.r,
+            color: Colors.black,
           ),
         ),
         actions: [
           Builder(
             builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: Colors.black, size: 28),
+              icon: Icon(Icons.menu, color: Colors.black, size: 28.r),
               onPressed: () => Scaffold.of(context).openEndDrawer(),
             ),
           ),
@@ -130,10 +178,14 @@ class _ChatPageState extends State<ChatPage>
         bloc: bloc,
         builder: (context, state) {
           if (state is ChatInitial) {
-            return const Center(child: Text('شروع گفتگو'));
+            return Center(
+              child: const CircularProgressIndicator(color: Color(0xff3EB9B4)),
+            );
           }
           if (state is ChatLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xff3EB9B4)),
+            );
           }
 
           if (state is ChatLoaded) {
@@ -145,8 +197,8 @@ class _ChatPageState extends State<ChatPage>
                     reverse: true,
                     controller: _scrollController,
                     padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 12.h,
+                      horizontal: 6.w,
+                      // vertical: 8.h,
                     ),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
@@ -155,117 +207,105 @@ class _ChatPageState extends State<ChatPage>
 
                       return Directionality(
                         textDirection: TextDirection.rtl,
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: 12.h),
-                          child: Row(
-                            mainAxisAlignment: isUser
-                                ? MainAxisAlignment.start
-                                : MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // if (!isUser) ...[
-                              //   CircleAvatar(
-                              //     radius: 16.r,
-                              //     backgroundColor: Colors.grey[300],
-                              //     child: Icon(Icons.smart_toy, size: 18.r),
-                              //   ),
-                              //   SizedBox(width: 8.w),
-                              // ],
-                              Column(
-                                crossAxisAlignment: isUser
-                                    ? CrossAxisAlignment.end
-                                    : CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    constraints: BoxConstraints(
-                                      maxWidth:
-                                          MediaQuery.sizeOf(context).width *
-                                          0.8,
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.r,
-                                      vertical: 12.r,
-                                    ),
+                        child: Row(
+                          mainAxisAlignment: isUser
+                              ? MainAxisAlignment.start
+                              : MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: isUser
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.sizeOf(context).width * 0.8,
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.r,
+                                    vertical: 12.r,
+                                  ),
+                                  margin: EdgeInsets.only(bottom: 7.r),
 
-                                    decoration: BoxDecoration(
-                                      color: isUser
-                                          ? Color(0xff3EB9B4)
-                                          : Color(0xffE8E8E8),
-                                      borderRadius: BorderRadius.circular(17.r),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (!m.isLoading) ...[
-                                          Text(
-                                            m.text,
-                                            style: TextStyle(
-                                              color: isUser
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                              fontSize: 14.sp,
-                                              height: 1.4,
-                                            ),
+                                  decoration: BoxDecoration(
+                                    color: isUser
+                                        ? Color(0xff3EB9B4)
+                                        : Color(0xffE8E8E8),
+                                    borderRadius: BorderRadius.circular(17.r),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (!m.isLoading) ...[
+                                        Text(
+                                          m.text,
+                                          style: TextStyle(
+                                            color: isUser
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontSize: 14.sp,
+                                            height: 1.4,
                                           ),
-                                          if (!isUser &&
-                                              m.isWelcomeMessage &&
-                                              m.hasButtons &&
-                                              messages.indexOf(m) >
-                                                  messages.length - 2) ...[
-                                            SizedBox(height: 8.h),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                _buildSuggestionButton('بله'),
-                                                SizedBox(width: 8.w),
-                                                _buildSuggestionButton('خیر'),
-                                              ],
-                                            ),
-                                          ],
-                                          if (!isUser &&
-                                              m.isWelcomeMessage &&
-                                              m.hasButtons &&
-                                              messages.indexOf(m) >
-                                                  messages.length - 4 &&
-                                              messages.indexOf(m) <=
-                                                  messages.length - 3)
-                                            _buildLinkButtons(),
-
-                                          if (!isUser &&
-                                              !m.isLoading &&
-                                              !m.isWelcomeMessage) ...[
-                                            SizedBox(height: 4.h),
-                                            _buildActionIcon(),
-                                          ],
-                                        ],
-                                        if (m.isLoading) ...[
+                                        ),
+                                        if (!isUser &&
+                                            m.isWelcomeMessage &&
+                                            m.hasButtons &&
+                                            messages.indexOf(m) >
+                                                messages.length - 2) ...[
+                                          SizedBox(height: 8.h),
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              SizedBox(
-                                                width: 20.w,
-                                                height: 20.h,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      color: Colors.grey,
-                                                    ),
-                                              ),
+                                              _buildSuggestionButton('بله'),
+                                              SizedBox(width: 8.w),
+                                              _buildSuggestionButton('خیر'),
                                             ],
                                           ),
                                         ],
+                                        if (!isUser &&
+                                            m.isWelcomeMessage &&
+                                            m.hasButtons &&
+                                            messages.indexOf(m) >
+                                                messages.length - 4 &&
+                                            messages.indexOf(m) <=
+                                                messages.length - 3)
+                                          _buildLinkButtons(),
+
+                                        if (!isUser &&
+                                            !m.isLoading &&
+                                            !m.isWelcomeMessage) ...[
+                                          SizedBox(height: 4.h),
+                                          _buildActionIcon(),
+                                        ],
                                       ],
-                                    ),
+                                      if (m.isLoading) ...[
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                              width: 20.w,
+                                              height: 20.h,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
                                   ),
+                                ),
 
-                                  // دکمه‌های پیشنهادی (اگر وجود داشته باشد)
+                                // دکمه‌های پیشنهادی (اگر وجود داشته باشد)
 
-                                  // لودینگ
-                                ],
-                              ),
-                            ],
-                          ),
+                                // لودینگ
+                              ],
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -275,25 +315,22 @@ class _ChatPageState extends State<ChatPage>
                 // Input Area
                 Container(
                   color: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 8.h,
-                  ),
+                  padding: EdgeInsets.only(left: 6.w, right: 6.w, bottom: 8.h),
                   child: SafeArea(
                     child: Column(
                       children: [
                         if (picked != null) ...[
                           Container(
-                            padding: EdgeInsets.all(8.r),
-                            margin: EdgeInsets.only(bottom: 8.h),
+                            padding: EdgeInsets.all(2.r),
+                            margin: EdgeInsets.only(bottom: 5.h),
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12.r),
+                              borderRadius: BorderRadius.circular(17.r),
                             ),
                             child: Row(
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.r),
+                                  borderRadius: BorderRadius.circular(17.r),
                                   child: Image.file(
                                     File(picked.path),
                                     height: 60.h,
@@ -314,121 +351,158 @@ class _ChatPageState extends State<ChatPage>
                             ),
                           ),
                         ],
-                        Row(
-                          children: [
-                            // دکمه ارسال
-                            Expanded(
-                              child: Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Color(0xffF5F5F5),
-                                    borderRadius: BorderRadius.circular(24.r),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // آیکون attach
-                                      SizedBox(width: 12.w),
+                        SizedBox(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // دکمه ارسال
+                              Expanded(
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Color(0xffF5F5F5),
+                                      borderRadius: BorderRadius.circular(24.r),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // آیکون attach
+                                        SizedBox(width: 8.w),
 
-                                      // TextField
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _controller,
-                                          minLines: 1,
-                                          maxLines: 4,
-                                          onSubmitted: (_) => _send(),
-                                          style: TextStyle(fontSize: 15.sp),
-                                          decoration: InputDecoration(
-                                            hintText: 'پیام خود را بنویسید...',
-                                            hintStyle: TextStyle(
-                                              color: Colors.grey[400],
-                                              fontSize: 15.sp,
+                                        // TextField
+                                        Expanded(
+                                          child: TextField(
+                                            controller: _controller,
+                                            minLines: 1,
+                                            maxLines: 4,
+                                            onSubmitted: (_) => _send(),
+                                            style: TextStyle(fontSize: 15.sp),
+                                            decoration: InputDecoration(
+                                              hintText:
+                                                  'پیام خود را بنویسید...',
+                                              hintStyle: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontSize: 15.sp,
+                                              ),
+                                              border: InputBorder.none,
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                    horizontal: 4.w,
+                                                    vertical: 2.h,
+                                                  ),
                                             ),
-                                            border: InputBorder.none,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                  horizontal: 4.w,
-                                                  vertical: 12.h,
-                                                ),
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(width: 12.w),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.attach_file,
-                                          color: Colors.grey[600],
+                                        // SizedBox(width: 12.w),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.attach_file,
+                                            color: Colors.grey[600],
+                                          ),
+                                          onPressed: messages.isEmpty
+                                              ? state.user.imageInDay < 3
+                                                    ? () async {
+                                                        final picker =
+                                                            ImagePicker();
+                                                        picked = await picker
+                                                            .pickImage(
+                                                              source:
+                                                                  ImageSource
+                                                                      .gallery,
+                                                            );
+                                                        setState(() {});
+                                                      }
+                                                    : null
+                                              : messages.first.isLoading
+                                              ? null
+                                              : state.user.imageInDay < 3
+                                              ? () async {
+                                                  final picker = ImagePicker();
+                                                  picked = await picker
+                                                      .pickImage(
+                                                        source:
+                                                            ImageSource.gallery,
+                                                      );
+                                                  setState(() {});
+                                                }
+                                              : null,
                                         ),
-                                        onPressed: messages.isEmpty
-                                            ? state.user.imageInDay < 3
-                                                  ? () async {
-                                                      final picker =
-                                                          ImagePicker();
-                                                      picked = await picker
-                                                          .pickImage(
-                                                            source: ImageSource
-                                                                .gallery,
-                                                          );
-                                                      setState(() {});
-                                                    }
-                                                  : null
-                                            : messages.first.isLoading
-                                            ? null
-                                            : state.user.imageInDay < 3
-                                            ? () async {
-                                                final picker = ImagePicker();
-                                                picked = await picker.pickImage(
-                                                  source: ImageSource.gallery,
-                                                );
-                                                setState(() {});
-                                              }
-                                            : null,
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: 8.w),
-                            Container(
-                              width: 48.w,
-                              height: 48.h,
-                              decoration: BoxDecoration(
-                                color: Color(0xff3EB9B4),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.send,
-                                  color: Colors.white,
-                                  size: 22,
+                              SizedBox(width: 6.w),
+                              Container(
+                                width: 40.w,
+                                height: 40.h,
+                                decoration: BoxDecoration(
+                                  color: Color(0xff3EB9B4),
+                                  shape: BoxShape.circle,
                                 ),
-                                onPressed: messages.isEmpty
-                                    ? () {
-                                        if (picked == null) {
-                                          _send();
-                                        } else {
-                                          _sendImg(File(picked.path));
-                                          picked = null;
-                                          setState(() {});
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                    size: 18.r,
+                                  ),
+                                  onPressed: messages.isEmpty
+                                      ? () {
+                                          if (picked == null) {
+                                            _send();
+                                            _scrollController.animateTo(
+                                              0,
+                                              duration: Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve: Curves.easeOut,
+                                            );
+                                          } else {
+                                            _sendImg(File(picked.path));
+                                            _scrollController.animateTo(
+                                              0,
+                                              duration: Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve: Curves.easeOut,
+                                            );
+                                            picked = null;
+                                            setState(() {});
+                                          }
                                         }
-                                      }
-                                    : messages.first.isLoading
-                                    ? null
-                                    : () {
-                                        if (picked == null) {
-                                          _send();
-                                        } else {
-                                          _sendImg(File(picked.path));
-                                          picked = null;
-                                          setState(() {});
-                                        }
-                                      },
+                                      : messages.first.isLoading
+                                      ? null
+                                      : () {
+                                          if (picked == null) {
+                                            _send();
+                                            _scrollController.animateTo(
+                                              0,
+                                              duration: Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve: Curves.easeOut,
+                                            );
+                                          } else {
+                                            _sendImg(File(picked.path));
+                                            _scrollController.animateTo(
+                                              0,
+                                              duration: Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve: Curves.easeOut,
+                                            );
+                                            picked = null;
+                                            setState(() {});
+                                          }
+                                        },
+                                ),
                               ),
-                            ),
 
-                            // Text Input
-                          ],
+                              // Text Input
+                            ],
+                          ),
                         ),
                       ],
                     ),

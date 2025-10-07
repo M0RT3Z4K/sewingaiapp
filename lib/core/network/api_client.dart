@@ -49,7 +49,7 @@ class ApiClient {
                 {
                   "type": "text",
                   "text":
-                      '''You are a professional Sewing Assistant. and answer persian''',
+                      '''You are a professional Sewing Assistant. and answer persian. and don't say  AI:''',
                 },
               ],
             },
