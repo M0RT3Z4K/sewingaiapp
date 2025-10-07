@@ -8,6 +8,8 @@ class Message {
   final bool isLoading;
   final String? imageUrl; // عکس از سرور
   final File? imageFile;
+  final bool isWelcomeMessage; // اضافه کن
+  final bool hasButtons;
 
   const Message({
     required this.id,
@@ -17,5 +19,7 @@ class Message {
     required this.isLoading,
     this.imageUrl,
     this.imageFile,
+    this.isWelcomeMessage = false, // پیش‌فرض false
+    this.hasButtons = false,
   });
 }

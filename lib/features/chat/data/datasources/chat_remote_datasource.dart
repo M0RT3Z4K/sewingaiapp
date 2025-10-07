@@ -1,3 +1,4 @@
+import 'package:get_it/get_it.dart';
 import 'package:sewingaiapp/core/network/api_client.dart';
 import 'package:sewingaiapp/features/chat/data/models/message_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,6 +95,9 @@ CURRENT QUESTION: "$prompt"
 
   @override
   Future<auth.User> getCurrentUser() async {
+    if (GetIt.instance.isRegistered<auth.User>()) {
+      return GetIt.instance<auth.User>();
+    }
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("auth_token");
 
@@ -104,6 +108,8 @@ CURRENT QUESTION: "$prompt"
         .single();
 
     auth.User user = auth.User.fromJson(user_response);
+
+    GetIt.instance.registerSingleton<auth.User>(user);
     return user;
   }
 }

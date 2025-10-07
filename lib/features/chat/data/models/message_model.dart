@@ -1,5 +1,6 @@
 import 'package:sewingaiapp/features/chat/domain/entities/message.dart';
 
+// lib/features/chat/data/models/message_model.dart
 class MessageModel extends Message {
   const MessageModel({
     required String id,
@@ -7,12 +8,16 @@ class MessageModel extends Message {
     required DateTime createdAt,
     required bool isFromUser,
     required bool isLoading,
+    bool isWelcomeMessage = false,
+    bool hasButtons = false,
   }) : super(
          id: id,
          text: text,
          createdAt: createdAt,
          isFromUser: isFromUser,
          isLoading: isLoading,
+         isWelcomeMessage: isWelcomeMessage,
+         hasButtons: hasButtons,
        );
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +31,8 @@ class MessageModel extends Message {
       ),
       isFromUser: json['isFromUser'] as bool? ?? false,
       isLoading: json['isLoading'] ?? false,
+      isWelcomeMessage: json['isWelcomeMessage'] ?? false,
+      hasButtons: json['hasButtons'] ?? false,
     );
   }
 
@@ -35,6 +42,8 @@ class MessageModel extends Message {
       'text': text,
       'createdAt': createdAt.toIso8601String(),
       'isFromUser': isFromUser,
+      'isWelcomeMessage': isWelcomeMessage,
+      'hasButtons': hasButtons,
     };
   }
 }

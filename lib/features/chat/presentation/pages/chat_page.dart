@@ -15,6 +15,7 @@ import 'package:sewingaiapp/features/chat/domain/usecases/send_message.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_event.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -170,35 +171,33 @@ class _ChatPageState extends State<ChatPage>
                               //   ),
                               //   SizedBox(width: 8.w),
                               // ],
-                              Flexible(
-                                child: Column(
-                                  crossAxisAlignment: isUser
-                                      ? CrossAxisAlignment.end
-                                      : CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.sizeOf(context).width *
-                                            0.8,
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16.w,
-                                        vertical: 12.h,
-                                      ),
+                              Column(
+                                crossAxisAlignment: isUser
+                                    ? CrossAxisAlignment.end
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.sizeOf(context).width *
+                                          0.8,
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12.r,
+                                      vertical: 12.r,
+                                    ),
 
-                                      decoration: BoxDecoration(
-                                        color: isUser
-                                            ? Color(0xff3EB9B4)
-                                            : Color(0xffE8E8E8),
-                                        borderRadius: BorderRadius.circular(
-                                          16.r,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
+                                    decoration: BoxDecoration(
+                                      color: isUser
+                                          ? Color(0xff3EB9B4)
+                                          : Color(0xffE8E8E8),
+                                      borderRadius: BorderRadius.circular(17.r),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (!m.isLoading) ...[
                                           Text(
                                             m.text,
                                             style: TextStyle(
@@ -210,9 +209,10 @@ class _ChatPageState extends State<ChatPage>
                                             ),
                                           ),
                                           if (!isUser &&
-                                              (index == messages.length - 1 ||
-                                                  index ==
-                                                      messages.length - 2)) ...[
+                                              m.isWelcomeMessage &&
+                                              m.hasButtons &&
+                                              messages.indexOf(m) >
+                                                  messages.length - 2) ...[
                                             SizedBox(height: 8.h),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -223,56 +223,46 @@ class _ChatPageState extends State<ChatPage>
                                               ],
                                             ),
                                           ],
+                                          if (!isUser &&
+                                              m.isWelcomeMessage &&
+                                              m.hasButtons &&
+                                              messages.indexOf(m) >
+                                                  messages.length - 4 &&
+                                              messages.indexOf(m) <=
+                                                  messages.length - 3)
+                                            _buildLinkButtons(),
 
                                           if (!isUser &&
                                               !m.isLoading &&
-                                              messages.length > 4) ...[
-                                            SizedBox(height: 8.h),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                _buildActionIcon(
-                                                  Icons.copy,
-                                                  () {},
-                                                ),
-                                                SizedBox(width: 12.w),
-                                                _buildActionIcon(
-                                                  Icons.share,
-                                                  () {},
-                                                ),
-                                                SizedBox(width: 12.w),
-                                                _buildActionIcon(
-                                                  Icons.bookmark_border,
-                                                  () {},
-                                                ),
-                                              ],
-                                            ),
+                                              !m.isWelcomeMessage) ...[
+                                            SizedBox(height: 4.h),
+                                            _buildActionIcon(),
                                           ],
                                         ],
-                                      ),
-                                    ),
-
-                                    // دکمه‌های پیشنهادی (اگر وجود داشته باشد)
-
-                                    // لودینگ
-                                    if (m.isLoading) ...[
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(
-                                            width: 20.w,
-                                            height: 20.h,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.grey,
-                                            ),
+                                        if (m.isLoading) ...[
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              SizedBox(
+                                                width: 20.w,
+                                                height: 20.h,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.grey,
+                                                    ),
+                                              ),
+                                            ],
                                           ),
                                         ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // دکمه‌های پیشنهادی (اگر وجود داشته باشد)
+
+                                  // لودینگ
+                                ],
                               ),
                             ],
                           ),
@@ -459,32 +449,127 @@ class _ChatPageState extends State<ChatPage>
   }
 
   Widget _buildSuggestionButton(String text) {
-    return GestureDetector(
-      onTap: () {
-        bloc.add(SendQuickReply(text));
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: Color(0xff3EB9B4),
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          bloc.add(SendQuickReply(text));
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Color(0xff3EA3B9),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildActionIcon(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Icon(icon, size: 20.r, color: Colors.grey[600]),
+  Widget _buildLinkButtons() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                bloc.add(ClearWelcomeMessages());
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: Color(0xff3EA3B9),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                  child: Text(
+                    "بستن",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+
+          Expanded(
+            child: GestureDetector(
+              onTap: () => launchUrl(
+                Uri.parse("https://eitaa.com/joinchat/581108722C65154713e7"),
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: Color(0xff3EA3B9),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                  child: Text(
+                    "توضیحات بیشتر",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionIcon() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+
+      children: [
+        GestureDetector(
+          onTap: () {},
+          child: Icon(
+            Icons.copy,
+            size: 19.r,
+            weight: 1.5,
+            color: Color(0xff737373),
+          ),
+        ),
+        SizedBox(width: 7.w),
+        GestureDetector(
+          onTap: () {},
+          child: Icon(
+            Icons.share_outlined,
+            size: 20.r,
+            weight: 1.5,
+            color: Color(0xff737373),
+          ),
+        ),
+        SizedBox(width: 5.w),
+        GestureDetector(
+          onTap: () {},
+          child: Icon(
+            Icons.bookmark_border,
+            size: 20.r,
+            weight: 1.5,
+            color: Color(0xff737373),
+          ),
+        ),
+      ],
     );
   }
 }

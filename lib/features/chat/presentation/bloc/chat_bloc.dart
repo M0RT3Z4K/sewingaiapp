@@ -14,6 +14,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // نگهداری تاریخچه محلی ساده
   final List<Message> _messages = [];
   final User? user = null;
+  bool _hasWelcomeBeenCleared = false; // اضافه کن این flag رو
 
   ChatBloc({
     required this.sendMessageUseCase,
@@ -31,6 +32,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           createdAt: DateTime.now(),
           isFromUser: false,
           isLoading: false,
+          isWelcomeMessage: true, // مهم!
+          hasButtons: true, // مهم!
         );
         _messages.add(welcomeMessage);
       }
@@ -48,25 +51,40 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         createdAt: DateTime.now(),
         isFromUser: true,
         isLoading: false,
+        isWelcomeMessage: true, // مهم!
+        hasButtons:
+            false, // مهم! (حالا که کاربر جواب داده، دیگه دکمه‌ها نباید باشن
       );
       _messages.add(userMessage);
 
       // تعیین پاسخ بات بر اساس انتخاب کاربر
       String botResponse;
+      Message botMessage;
       if (event.reply == 'بله') {
         botResponse =
             'عالی! لطفا از طریق لینک زیر وارد کانال ایتا شوید و توضیحات کامل را مطالعه کنید:\n\nhttps://eitaa.com/joinchat/581108722C65154713e7';
+        botMessage = Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: botResponse,
+          createdAt: DateTime.now(),
+          isFromUser: false,
+          isLoading: false,
+          isWelcomeMessage: true,
+          hasButtons: true, // مهم! (بعد از پاسخ بات، دکمه‌ها نباید باشن
+        );
       } else {
-        botResponse = 'سلام میتونی بهم کمک کنی؟';
+        botResponse = 'سلام. چطور میتونم بهتون کمک کنم؟';
+        botMessage = Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: botResponse,
+          createdAt: DateTime.now(),
+          isFromUser: false,
+          isLoading: false,
+          isWelcomeMessage: false,
+          hasButtons: false, // مهم! (بعد از پاسخ بات، دکمه‌ها نباید باشن
+        );
       }
 
-      final botMessage = Message(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: botResponse,
-        createdAt: DateTime.now(),
-        isFromUser: false,
-        isLoading: false,
-      );
       _messages.add(botMessage);
 
       emit(ChatLoaded(List.from(_messages), user));
@@ -75,17 +93,30 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ClearWelcomeMessages>((event, emit) async {
       User user = await getCurrentUserUseCase();
 
-      // پاک کردن همه پیام‌هایی که isFromUser نیستن (پیام‌های خوشامد)
-      // و نگه داشتن فقط پیام‌هایی که کاربر خودش فرستاده
-      _messages.clear();
+      if (!_hasWelcomeBeenCleared) {
+        _messages.removeWhere((msg) => msg.isWelcomeMessage == true);
+        _hasWelcomeBeenCleared = true; // علامت بزن که پاک شده
+      }
+
+      final botMessage = Message(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: 'سلام. چطور میتونم بهتون کمک کنم؟',
+        createdAt: DateTime.now(),
+        isFromUser: false,
+        isLoading: false,
+        isWelcomeMessage: false,
+        hasButtons: false, // مهم! (بعد از پاسخ بات، دکمه‌ها نباید باشن
+      );
+      _messages.add(botMessage);
 
       emit(ChatLoaded(List.from(_messages), user));
     });
     on<SendUserMessage>((event, emit) async {
       User user = await getCurrentUserUseCase();
 
-      if (_messages.length <= 3) {
-        _messages.clear();
+      if (!_hasWelcomeBeenCleared) {
+        _messages.removeWhere((msg) => msg.isWelcomeMessage == true);
+        _hasWelcomeBeenCleared = true; // علامت بزن که پاک شده
       }
 
       print(event.text);
@@ -97,6 +128,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           createdAt: DateTime.now(),
           isFromUser: true,
           isLoading: false,
+          isWelcomeMessage: false, // این پیام واقعیه
         );
         _messages.add(userMessage);
         Message aiMessage = Message(
@@ -105,6 +137,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           createdAt: DateTime.now(),
           isFromUser: false,
           isLoading: true,
+          isWelcomeMessage: false, // این پیام واقعیه
         );
         _messages.add(aiMessage);
 
@@ -127,8 +160,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SendImageMessage>((event, emit) async {
       User user = await getCurrentUserUseCase();
 
-      if (_messages.length <= 3) {
-        _messages.clear();
+      if (!_hasWelcomeBeenCleared) {
+        _messages.removeWhere((msg) => msg.isWelcomeMessage == true);
+        _hasWelcomeBeenCleared = true; // علامت بزن که پاک شده
       }
 
       final userImgMessage = Message(
@@ -138,6 +172,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         isFromUser: true,
         isLoading: false,
         imageFile: event.image,
+        isWelcomeMessage: false, // این پیام واقعیه
       );
       _messages.add(userImgMessage);
       Message aiImgMessage = Message(
@@ -146,6 +181,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         createdAt: DateTime.now(),
         isFromUser: false,
         isLoading: true,
+        isWelcomeMessage: false, // این پیام واقعیه
       );
       _messages.add(aiImgMessage);
 

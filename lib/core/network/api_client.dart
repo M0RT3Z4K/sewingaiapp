@@ -76,6 +76,7 @@ class ApiClient {
         }),
       );
     } on DioException catch (e) {
+      print(e.response);
       throw Exception(_handleError(e));
     }
   }
