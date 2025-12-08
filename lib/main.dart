@@ -14,6 +14,8 @@ import 'package:sewingaiapp/features/auth/domain/usecases/verify_otp.dart'
     as verifyOtpUsecase;
 import 'package:sewingaiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sewingaiapp/features/auth/presentation/bloc/auth_event.dart';
+import 'package:sewingaiapp/features/auth/presentation/otp_verification/bloc/otp_bloc.dart';
+import 'package:sewingaiapp/features/auth/presentation/phone_input/bloc/phone_bloc.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/send_message.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_bloc.dart';
@@ -100,6 +102,8 @@ class MyApp extends StatelessWidget {
             getUserWithToken: getUserWithToken,
           )..add(PageInitial()),
         ),
+        BlocProvider(create: (_) => getIt<PhoneBloc>()),
+        BlocProvider(create: (_) => getIt<OtpBloc>()),
         BlocProvider(
           create: (_) => ChatBloc(
             sendMessageUseCase: sendMessage,

@@ -10,6 +10,8 @@ import 'package:sewingaiapp/features/auth/domain/usecases/logout.dart';
 import 'package:sewingaiapp/features/auth/domain/usecases/save_token.dart';
 import 'package:sewingaiapp/features/auth/domain/usecases/send_otp.dart';
 import 'package:sewingaiapp/features/auth/domain/usecases/verify_otp.dart';
+import 'package:sewingaiapp/features/auth/presentation/otp_verification/bloc/otp_bloc.dart';
+import 'package:sewingaiapp/features/auth/presentation/phone_input/bloc/phone_bloc.dart';
 import 'package:sewingaiapp/features/chat/data/datasources/chat_remote_datasource.dart';
 import 'package:sewingaiapp/features/chat/data/repositories/chat_repository_impl.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
@@ -56,4 +58,14 @@ Future<void> init() async {
   getIt.registerSingleton(VerifyOtp(getIt<AuthRepositoryImpl>()));
   getIt.registerSingleton(GetUserWithToken(getIt<AuthRepositoryImpl>()));
   getIt.registerSingleton(Logout(getIt<AuthRepositoryImpl>()));
+
+  getIt.registerFactory(() => PhoneBloc(sendOtp: getIt()));
+  getIt.registerFactory(
+    () => OtpBloc(
+      verifyOtp: getIt(),
+      loginOrSignup: getIt(),
+      saveToken: getIt(),
+      sendOtp: getIt(),
+    ),
+  );
 }

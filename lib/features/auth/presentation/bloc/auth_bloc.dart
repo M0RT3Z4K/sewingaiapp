@@ -35,13 +35,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _onInit(PageInitial event, Emitter<AuthState> emit) async {
     emit(AuthInitial());
+    print("pageinitial");
     String? authToken = await getCachedToken();
     print(authToken);
-    if (authToken != null && authToken != "123") {
+    if (authToken != null) {
       final user = await getUserWithToken(authToken);
       emit(Authenticated(user));
     } else {
-      emit(AuthInitial());
+      emit(Authanticating());
     }
   }
 

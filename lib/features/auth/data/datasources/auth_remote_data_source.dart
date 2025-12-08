@@ -14,7 +14,7 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
-  Future<void> sendOtp(String phone) async {
+  Future<String> sendOtp(String phone) async {
     int min = 10000;
     int max = 99999;
     int otp = Random().nextInt(max - min + 1) + min;
@@ -34,7 +34,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'text': '''کد تایید شما: ${otp}\nمربی هوشمند خیاطی\nلغو11''',
       },
     );
-    print(response);
+    return response.data.toString();
   }
 
   @override

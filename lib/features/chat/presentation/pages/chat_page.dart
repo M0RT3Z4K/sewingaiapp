@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sewingaiapp/core/routes/app_route.dart';
@@ -11,11 +13,13 @@ import 'package:sewingaiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sewingaiapp/features/auth/presentation/bloc/auth_event.dart';
 import 'package:sewingaiapp/features/chat/data/datasources/chat_remote_datasource.dart';
 import 'package:sewingaiapp/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:sewingaiapp/features/chat/domain/entities/message.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/send_message.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_event.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_state.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ChatPage extends StatefulWidget {
@@ -95,13 +99,13 @@ class _ChatPageState extends State<ChatPage>
 
     return Scaffold(
       backgroundColor: Colors.white,
+      drawerEnableOpenDragGesture: false,
+      endDrawerEnableOpenDragGesture: false,
       endDrawer: Directionality(
         textDirection: TextDirection.rtl,
         child: Drawer(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.horizontal(
-              left: Radius.circular(17), // گوشه‌های سمت راست گرد
-            ),
+            borderRadius: BorderRadius.all(Radius.zero),
           ),
           child: SafeArea(
             child: Column(
@@ -127,7 +131,7 @@ class _ChatPageState extends State<ChatPage>
                   onTap: () {
                     GetIt.instance<Logout>().call();
                     context.read<AuthBloc>().add(PageInitial());
-                    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.phone);
                   },
                 ),
               ],
@@ -240,15 +244,36 @@ class _ChatPageState extends State<ChatPage>
                                         CrossAxisAlignment.start,
                                     children: [
                                       if (!m.isLoading) ...[
-                                        Text(
-                                          m.text,
-                                          style: TextStyle(
-                                            color: isUser
-                                                ? Colors.white
-                                                : Colors.black,
-                                            fontSize: 14.sp,
-                                            height: 1.4,
-                                          ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            if (m.imageFile != null)
+                                              Image.file(
+                                                m.imageFile!,
+                                                height: 200,
+                                              ),
+                                            if (m.imageUrl != null)
+                                              Image.network(
+                                                m.imageUrl!,
+                                                width: 200,
+                                              ),
+                                            // SizedBox(height: 10),
+
+                                            // Text(
+                                            //   m.text,
+                                            //   style: TextStyle(
+                                            //     color: m.isFromUser
+                                            //         ? Colors.white
+                                            //         : Colors.black87,
+                                            //     fontSize: 16,
+                                            //   ),
+                                            // ),
+                                            buildMessageText(
+                                              m.text,
+                                              m.isFromUser,
+                                            ),
+                                          ],
                                         ),
                                         if (!isUser &&
                                             m.isWelcomeMessage &&
@@ -278,7 +303,7 @@ class _ChatPageState extends State<ChatPage>
                                             !m.isLoading &&
                                             !m.isWelcomeMessage) ...[
                                           SizedBox(height: 4.h),
-                                          _buildActionIcon(),
+                                          _buildActionIcon(m),
                                         ],
                                       ],
                                       if (m.isLoading) ...[
@@ -378,7 +403,10 @@ class _ChatPageState extends State<ChatPage>
                                             minLines: 1,
                                             maxLines: 4,
                                             onSubmitted: (_) => _send(),
-                                            style: TextStyle(fontSize: 15.sp),
+                                            style: TextStyle(
+                                              fontSize: 15.sp,
+                                              letterSpacing: 0,
+                                            ),
                                             decoration: InputDecoration(
                                               hintText:
                                                   'پیام خود را بنویسید...',
@@ -609,13 +637,24 @@ class _ChatPageState extends State<ChatPage>
     );
   }
 
-  Widget _buildActionIcon() {
+  Widget _buildActionIcon(Message m) {
     return Row(
       mainAxisSize: MainAxisSize.min,
 
       children: [
         GestureDetector(
-          onTap: () {},
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: m.text));
+            Fluttertoast.showToast(
+              msg: "متن پیام کپی شد",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.black,
+              textColor: Colors.white,
+              fontSize: 16.sp,
+            );
+          },
           child: Icon(
             Icons.copy,
             size: 19.r,
@@ -625,7 +664,13 @@ class _ChatPageState extends State<ChatPage>
         ),
         SizedBox(width: 7.w),
         GestureDetector(
-          onTap: () {},
+          onTap: () {
+            SharePlus.instance.share(
+              ShareParams(
+                text: "${m.text}\n\nارسال شده توسط اپلیکیشن مربی هوشمند خیاطی",
+              ),
+            );
+          },
           child: Icon(
             Icons.share_outlined,
             size: 20.r,
@@ -644,6 +689,53 @@ class _ChatPageState extends State<ChatPage>
           ),
         ),
       ],
+    );
+  }
+
+  Widget buildMessageText(String text, bool isUser) {
+    return MarkdownBody(
+      data: text,
+      // selectable: true, // اگه میخوای قابل انتخاب باشه
+      styleSheet: MarkdownStyleSheet(
+        p: TextStyle(
+          color: isUser ? Colors.white : Colors.black,
+          fontSize: 14,
+          height: 1.4,
+        ),
+        code: TextStyle(
+          backgroundColor: isUser ? Colors.white24 : Colors.grey[300],
+          color: isUser ? Colors.white : Colors.black87,
+          fontFamily: 'monospace',
+        ),
+        codeblockDecoration: BoxDecoration(
+          color: isUser ? Colors.white24 : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        blockquote: TextStyle(
+          color: isUser ? Colors.white70 : Colors.black54,
+          fontStyle: FontStyle.italic,
+        ),
+        h1: TextStyle(
+          color: isUser ? Colors.white : Colors.black,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        h2: TextStyle(
+          color: isUser ? Colors.white : Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        h3: TextStyle(
+          color: isUser ? Colors.white : Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        listBullet: TextStyle(color: isUser ? Colors.white : Colors.black),
+        tableBody: TextStyle(color: isUser ? Colors.white : Colors.black),
+        tableBorder: TableBorder.all(
+          color: isUser ? Colors.white24 : Colors.grey[300]!,
+        ),
+      ),
     );
   }
 }

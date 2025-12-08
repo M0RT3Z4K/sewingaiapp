@@ -10,6 +10,8 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
+class Authanticating extends AuthState {}
+
 class OtpSent extends AuthState {
   final String phone;
   OtpSent(this.phone);

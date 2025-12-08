@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sewingaiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:sewingaiapp/features/auth/presentation/bloc/auth_state.dart';
 import 'package:sewingaiapp/features/version_check/presentation/bloc/version_state.dart';
 import '../bloc/version_bloc.dart';
 
@@ -9,54 +11,81 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<VersionBloc, VersionState>(
-      listener: (context, state) {
-        if (state is VersionLoadSuccess) {
-          final appVersion = state.appVersion;
-          if (appVersion.latestVersion != state.Version) {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text("به روزرسانی برنامه"),
-                content: const Text(
-                  "نسخه جدیدی از برنامه در دسترس است. برای استفاده از جدیدترین امکانات لطفا نسخه جدید را نصب کنید.",
-                ),
-                actions: <Widget>[
-                  appVersion.isForced
-                      ? const SizedBox()
-                      : TextButton(
+    return MultiBlocListener(
+      listeners: [
+        // Listener برای چک کردن ورژن
+        BlocListener<VersionBloc, VersionState>(
+          listener: (context, versionState) {
+            if (versionState is VersionLoadSuccess) {
+              final appVersion = versionState.appVersion;
+
+              // اگر ورژن جدید وجود داره
+              if (appVersion.latestVersion != versionState.Version) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: !appVersion.isForced,
+                  builder: (ctx) => WillPopScope(
+                    onWillPop: () async => !appVersion.isForced,
+                    child: AlertDialog(
+                      title: const Text("به روزرسانی برنامه"),
+                      content: const Text(
+                        "نسخه جدیدی از برنامه در دسترس است. برای استفاده از جدیدترین امکانات لطفا نسخه جدید را نصب کنید.",
+                      ),
+                      actions: <Widget>[
+                        appVersion.isForced
+                            ? const SizedBox()
+                            : TextButton(
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 5,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                  // بعد از بستن دیالوگ، ادامه به چک کردن auth
+                                  _checkAuthAfterVersionCheck(context);
+                                },
+                                child: const Text("بعدا"),
+                              ),
+                        TextButton(
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: Colors.blue,
                             elevation: 5,
                           ),
-
                           onPressed: () {
+                            // اینجا باید لینک دانلود رو باز کنی
+                            // launchUrl(Uri.parse(appVersion.downloadLink));
                             Navigator.of(ctx).pop();
                           },
-                          child: const Text("بعدا"),
+                          child: const Text(
+                            "نصب نسخه جدید",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.blue,
-
-                      elevation: 5,
-                    ),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                    },
-                    child: const Text(
-                      "نصب نسخه جدید",
-                      style: TextStyle(color: Colors.white),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            );
-          } else {
-            Navigator.of(context).pushReplacementNamed('/login');
-          }
-        } else {}
-      },
+                );
+              } else {
+                // اگر ورژن به‌روز بود، چک کردن auth
+                _checkAuthAfterVersionCheck(context);
+              }
+            }
+          },
+        ),
+
+        // Listener برای چک کردن وضعیت احراز هویت
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, authState) {
+            if (authState is Authenticated) {
+              // اگر یوزر قبلا لاگین کرده بود، بره به صفحه چت
+              Navigator.of(context).pushReplacementNamed('/chat');
+            } else if (authState is AuthInitial) {
+              // اگر لاگین نکرده بود، بره به صفحه لاگین
+              Navigator.of(context).pushReplacementNamed('/login');
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Color(0xff48d1cc),
         body: Stack(
@@ -83,5 +112,19 @@ class SplashPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // این متد بعد از چک ورژن، وضعیت auth رو بررسی میکنه
+  void _checkAuthAfterVersionCheck(BuildContext context) {
+    // اینجا دیگه از AuthBloc که از قبل ساخته شده استفاده میکنیم
+    // چون تو main.dart در MultiBlocProvider اضافه شده
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is Authenticated) {
+      Navigator.of(context).pushReplacementNamed('/chat');
+    } else if (authState is AuthInitial) {
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
+    // اگر AuthLoading یا حالت دیگه ای بود، صبر میکنه تا BlocListener بالا هندلش کنه
   }
 }

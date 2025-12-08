@@ -168,6 +168,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _messages.removeWhere((msg) => msg.isWelcomeMessage == true);
         _hasWelcomeBeenCleared = true; // علامت بزن که پاک شده
       }
+      print(event.image);
 
       final userImgMessage = Message(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
