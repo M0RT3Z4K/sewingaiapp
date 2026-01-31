@@ -1,13 +1,78 @@
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sewingaiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sewingaiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
 import 'package:sewingaiapp/features/version_check/presentation/bloc/version_state.dart';
+import 'package:sewingaiapp/injection_container.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../bloc/version_bloc.dart';
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    final appLinks = AppLinks();
+
+    final sub = appLinks.uriLinkStream.listen((uri) async {
+      final user = await getIt<GetCurrentUser>().call();
+      final got_user = await getIt<supabase.SupabaseClient>()
+          .from("users")
+          .select()
+          .eq('token', user.token)
+          .single();
+      print(got_user);
+      print(uri.queryParameters);
+      if (got_user['payment_authority'] == uri.queryParameters["Authority"]) {
+        if (uri.queryParameters["Status"] == "OK") {
+          setState(() {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+                ),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          });
+        } else {
+          setState(() {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("پرداخت شما ناموفق بود."),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          });
+        }
+      } else {
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("در پرداخت شما مشکلی به وجود آمده است."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        });
+      }
+
+      setState(() {
+        Navigator.of(context).pushReplacementNamed('/profile');
+      });
+
+      print(uri.queryParameters);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

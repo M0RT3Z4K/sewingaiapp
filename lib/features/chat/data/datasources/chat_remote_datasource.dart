@@ -96,7 +96,8 @@ CURRENT QUESTION: "$prompt"
   @override
   Future<auth.User> getCurrentUser() async {
     if (GetIt.instance.isRegistered<auth.User>()) {
-      return GetIt.instance<auth.User>();
+      // return GetIt.instance<auth.User>();
+      GetIt.instance.unregister<auth.User>();
     }
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("auth_token");
