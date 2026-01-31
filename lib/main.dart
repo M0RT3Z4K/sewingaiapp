@@ -23,6 +23,9 @@ import 'package:sewingaiapp/features/version_check/domain/usecases/check_app_ver
 import 'package:sewingaiapp/features/version_check/presentation/bloc/version_bloc.dart';
 import 'package:sewingaiapp/features/version_check/presentation/bloc/version_event.dart';
 import 'package:sewingaiapp/injection_container.dart';
+import 'dart:async';
+import 'package:app_links/app_links.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -59,7 +62,7 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final CheckAppVersion checkAppVersion;
   final SendMessage sendMessage;
   final SendImgMessage sendImgMessage;
@@ -86,29 +89,89 @@ class MyApp extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    initDeeplink();
+  }
+
+  Future<void> initDeeplink() async {
+    final appLinks = AppLinks();
+
+    appLinks.uriLinkStream.listen((uri) async {
+      final user = await getIt<GetCurrentUser>().call();
+      final got_user = await getIt<supabase.SupabaseClient>()
+          .from("users")
+          .select()
+          .eq('token', user.token)
+          .single();
+      print(got_user);
+      print(uri.queryParameters);
+      if (got_user['payment_authority'] == uri.queryParameters["Authority"]) {
+        if (uri.queryParameters["Status"] == "OK") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("پرداخت شما ناموفق بود."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("در پرداخت شما مشکلی به وجود آمده است."),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      navigatorKey.currentState?.pushReplacementNamed(AppRoutes.profile);
+
+      print(uri.queryParameters);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => VersionBloc(checkAppVersion)..add(CheckVersionEvent()),
+          create: (_) =>
+              VersionBloc(widget.checkAppVersion)..add(CheckVersionEvent()),
         ),
         BlocProvider(
           create: (_) => AuthBloc(
-            getCachedToken: getCachedToken,
-            loginOrSignup: loginOrSignup,
-            saveToken: saveToken,
-            sendOtp: sendOtp,
-            verifyOtp: verifyOtp,
-            getUserWithToken: getUserWithToken,
+            getCachedToken: widget.getCachedToken,
+            loginOrSignup: widget.loginOrSignup,
+            saveToken: widget.saveToken,
+            sendOtp: widget.sendOtp,
+            verifyOtp: widget.verifyOtp,
+            getUserWithToken: widget.getUserWithToken,
           )..add(PageInitial()),
         ),
         BlocProvider(create: (_) => getIt<PhoneBloc>()),
         BlocProvider(create: (_) => getIt<OtpBloc>()),
         BlocProvider(
           create: (_) => ChatBloc(
-            sendMessageUseCase: sendMessage,
-            sendImgMessageUseCase: sendImgMessage,
-            getCurrentUserUseCase: getCurrentUser,
+            sendMessageUseCase: widget.sendMessage,
+            sendImgMessageUseCase: widget.sendImgMessage,
+            getCurrentUserUseCase: widget.getCurrentUser,
           ),
         ),
       ],
@@ -117,6 +180,7 @@ class MyApp extends StatelessWidget {
         minTextAdapt: true,
         splitScreenMode: true,
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Clean Chat AI',
           themeMode: ThemeMode.system,
