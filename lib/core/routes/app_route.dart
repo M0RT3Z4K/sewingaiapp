@@ -5,7 +5,7 @@ import 'package:sewingaiapp/features/auth/presentation/pages/login_page.dart';
 import 'package:sewingaiapp/features/auth/presentation/phone_input/pages/phone_input_page.dart';
 import 'package:sewingaiapp/features/chat/presentation/pages/chat_page.dart';
 import 'package:sewingaiapp/features/home/presentation/pages/home_page.dart';
-import 'package:sewingaiapp/features/profile/presentation/pages/prfile_page.dart';
+import 'package:sewingaiapp/features/profile/presentation/pages/profile_page.dart';
 import 'package:sewingaiapp/features/subscription/presentation/pages/payment_page.dart';
 import 'package:sewingaiapp/features/version_check/presentation/pages/splash_page.dart';
 

@@ -22,6 +22,7 @@ import 'package:sewingaiapp/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_event.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_state.dart';
 import 'package:sewingaiapp/features/subscription/presentation/widgets/subscription_dialog.dart';
+import 'package:sewingaiapp/injection_container.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -171,10 +172,13 @@ class _ChatPageState extends State<ChatPage>
         leadingWidth: 45.w,
         leading: Padding(
           padding: EdgeInsets.only(left: 12.w),
-          child: Icon(
-            Icons.account_circle_outlined,
-            size: 28.r,
-            color: Colors.black,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+            child: Icon(
+              Icons.account_circle_outlined,
+              size: 28.r,
+              color: Colors.black,
+            ),
           ),
         ),
         actions: [
