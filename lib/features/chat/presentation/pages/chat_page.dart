@@ -236,10 +236,13 @@ class _ChatPageState extends State<ChatPage>
                                     maxWidth:
                                         MediaQuery.sizeOf(context).width * 0.8,
                                   ),
-                                  padding: (m.imageUrl != null)
+                                  padding:
+                                      ((m.imageUrl != null ||
+                                              m.imageFile != null) &&
+                                          m.isFromUser)
                                       ? m.text == ""
                                             ? EdgeInsets.zero
-                                            : EdgeInsets.only(bottom: 5)
+                                            : EdgeInsets.only(bottom: 7.r)
                                       : EdgeInsets.symmetric(
                                           horizontal: 12.r,
                                           vertical: 12.r,
@@ -261,18 +264,57 @@ class _ChatPageState extends State<ChatPage>
                                               CrossAxisAlignment.start,
                                           children: [
                                             if (m.imageFile != null)
-                                              Image.file(
-                                                m.imageFile!,
-                                                height: 200,
+                                              ClipRRect(
+                                                borderRadius: m.text.isEmpty
+                                                    ? BorderRadius.circular(
+                                                        17.r,
+                                                      )
+                                                    : BorderRadius.only(
+                                                        topLeft:
+                                                            Radius.circular(
+                                                              17.r,
+                                                            ),
+                                                        topRight:
+                                                            Radius.circular(
+                                                              17.r,
+                                                            ),
+                                                      ),
+                                                child: Image.file(
+                                                  m.imageFile!,
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                ),
                                               ),
                                             if (m.imageUrl != null)
-                                              Image.network(
-                                                m.imageUrl!,
-                                                width: 200,
+                                              ClipRRect(
+                                                borderRadius: m.text.isEmpty
+                                                    ? BorderRadius.circular(
+                                                        17.r,
+                                                      )
+                                                    : BorderRadius.only(
+                                                        topLeft:
+                                                            Radius.circular(
+                                                              17.r,
+                                                            ),
+                                                        topRight:
+                                                            Radius.circular(
+                                                              17.r,
+                                                            ),
+                                                      ),
+                                                child: Image.network(
+                                                  m.imageUrl!,
+                                                  width: 200,
+                                                ),
                                               ),
+                                            if (m.imageUrl != null ||
+                                                m.imageFile != null)
+                                              SizedBox(height: 3.h),
+
                                             buildMessageText(
                                               m.text,
                                               m.isFromUser,
+                                              (m.imageUrl != null ||
+                                                  m.imageFile != null),
                                             ),
                                           ],
                                         ),
@@ -709,100 +751,111 @@ class _ChatPageState extends State<ChatPage>
   }
 
   Widget _buildActionIcon(Message m) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: m.text));
-            Fluttertoast.showToast(
-              msg: "متن پیام کپی شد",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.black,
-              textColor: Colors.white,
-              fontSize: 16.sp,
-            );
-          },
-          child: Icon(
-            Icons.copy,
-            size: 19.r,
-            weight: 1.5,
-            color: const Color(0xff737373),
+    return Padding(
+      padding: m.isFromUser
+          ? EdgeInsets.symmetric(horizontal: 12.r)
+          : EdgeInsets.zero,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: m.text));
+              Fluttertoast.showToast(
+                msg: "متن پیام کپی شد",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.black,
+                textColor: Colors.white,
+                fontSize: 16.sp,
+              );
+            },
+            child: Icon(
+              Icons.copy,
+              size: 19.r,
+              weight: 1.5,
+              color: const Color(0xff737373),
+            ),
           ),
-        ),
-        SizedBox(width: 7.w),
-        GestureDetector(
-          onTap: () {
-            SharePlus.instance.share(
-              ShareParams(
-                text: "${m.text}\n\nارسال شده توسط اپلیکیشن مربی هوشمند خیاطی",
-              ),
-            );
-          },
-          child: Icon(
-            Icons.share_outlined,
-            size: 20.r,
-            weight: 1.5,
-            color: const Color(0xff737373),
+          SizedBox(width: 7.w),
+          GestureDetector(
+            onTap: () {
+              SharePlus.instance.share(
+                ShareParams(
+                  text:
+                      "${m.text}\n\nارسال شده توسط اپلیکیشن مربی هوشمند خیاطی",
+                ),
+              );
+            },
+            child: Icon(
+              Icons.share_outlined,
+              size: 20.r,
+              weight: 1.5,
+              color: const Color(0xff737373),
+            ),
           ),
-        ),
-        SizedBox(width: 5.w),
-        GestureDetector(
-          onTap: () {},
-          child: Icon(
-            Icons.bookmark_border,
-            size: 20.r,
-            weight: 1.5,
-            color: const Color(0xff737373),
+          SizedBox(width: 5.w),
+          GestureDetector(
+            onTap: () {},
+            child: Icon(
+              Icons.bookmark_border,
+              size: 20.r,
+              weight: 1.5,
+              color: const Color(0xff737373),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget buildMessageText(String text, bool isUser) {
-    return MarkdownBody(
-      data: text,
-      styleSheet: MarkdownStyleSheet(
-        p: TextStyle(
-          color: isUser ? Colors.white : Colors.black,
-          fontSize: 14,
-          height: 1.4,
-        ),
-        code: TextStyle(
-          backgroundColor: isUser ? Colors.white24 : Colors.grey[300],
-          color: isUser ? Colors.white : Colors.black87,
-          fontFamily: 'monospace',
-        ),
-        codeblockDecoration: BoxDecoration(
-          color: isUser ? Colors.white24 : Colors.grey[300],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        blockquote: TextStyle(
-          color: isUser ? Colors.white70 : Colors.black54,
-          fontStyle: FontStyle.italic,
-        ),
-        h1: TextStyle(
-          color: isUser ? Colors.white : Colors.black,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-        h2: TextStyle(
-          color: isUser ? Colors.white : Colors.black,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-        h3: TextStyle(
-          color: isUser ? Colors.white : Colors.black,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-        listBullet: TextStyle(color: isUser ? Colors.white : Colors.black),
-        tableBody: TextStyle(color: isUser ? Colors.white : Colors.black),
-        tableBorder: TableBorder.all(
-          color: isUser ? Colors.white24 : Colors.grey[300]!,
+  Widget buildMessageText(String text, bool isUser, bool havePic) {
+    return Padding(
+      padding: (isUser && havePic)
+          ? EdgeInsets.symmetric(horizontal: 12.r)
+          : EdgeInsets.zero,
+      child: MarkdownBody(
+        data: text,
+        styleSheet: MarkdownStyleSheet(
+          p: TextStyle(
+            color: isUser ? Colors.white : Colors.black,
+            fontSize: 14,
+            height: 1.4,
+          ),
+          code: TextStyle(
+            backgroundColor: isUser ? Colors.white24 : Colors.grey[300],
+            color: isUser ? Colors.white : Colors.black87,
+            fontFamily: 'monospace',
+          ),
+          codeblockDecoration: BoxDecoration(
+            color: isUser ? Colors.white24 : Colors.grey[300],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          blockquote: TextStyle(
+            color: isUser ? Colors.white70 : Colors.black54,
+            fontStyle: FontStyle.italic,
+          ),
+          h1: TextStyle(
+            color: isUser ? Colors.white : Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+          h2: TextStyle(
+            color: isUser ? Colors.white : Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          h3: TextStyle(
+            color: isUser ? Colors.white : Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          listBullet: TextStyle(color: isUser ? Colors.white : Colors.black),
+          tableBody: TextStyle(color: isUser ? Colors.white : Colors.black),
+          tableBorder: TableBorder.all(
+            color: isUser ? Colors.white24 : Colors.grey[300]!,
+          ),
         ),
       ),
     );
