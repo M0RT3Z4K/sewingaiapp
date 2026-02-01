@@ -106,44 +106,67 @@ class _MyAppState extends State<MyApp> {
     final appLinks = AppLinks();
 
     appLinks.uriLinkStream.listen((uri) async {
-      final user = await getIt<GetCurrentUser>().call();
-      final got_user = await getIt<supabase.SupabaseClient>()
-          .from("users")
-          .select()
-          .eq('token', user.token)
-          .single();
-      print(got_user);
-      print(uri.queryParameters);
-      if (got_user['payment_authority'] == uri.queryParameters["Authority"]) {
-        if (uri.queryParameters["Status"] == "OK") {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+      print("Deep link received: $uri");
+      print("Query parameters: ${uri.queryParameters}");
+
+      try {
+        final user = await getIt<GetCurrentUser>().call();
+        final got_user = await getIt<supabase.SupabaseClient>()
+            .from("users")
+            .select()
+            .eq('token', user.token)
+            .single();
+
+        print("User from DB: $got_user");
+
+        // ✅ استفاده از navigatorKey.currentContext
+        final currentContext = navigatorKey.currentContext;
+        if (currentContext == null) {
+          print("Navigator context is null");
+          return;
+        }
+
+        if (got_user['payment_authority'] == uri.queryParameters["Authority"]) {
+          if (uri.queryParameters["Status"] == "OK") {
+            ScaffoldMessenger.of(currentContext).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+                ),
+                behavior: SnackBarBehavior.floating,
               ),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+            );
+          } else {
+            ScaffoldMessenger.of(currentContext).showSnackBar(
+              SnackBar(
+                content: Text("پرداخت شما ناموفق بود."),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(currentContext).showSnackBar(
             SnackBar(
-              content: Text("پرداخت شما ناموفق بود."),
+              content: Text("در پرداخت شما مشکلی به وجود آمده است."),
               behavior: SnackBarBehavior.floating,
             ),
           );
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("در پرداخت شما مشکلی به وجود آمده است."),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+
+        // ✅ Navigate to profile page using navigatorKey
+        navigatorKey.currentState?.pushReplacementNamed(AppRoutes.profile);
+      } catch (e) {
+        print("Error handling deep link: $e");
+        final currentContext = navigatorKey.currentContext;
+        if (currentContext != null) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            SnackBar(
+              content: Text("خطا در پردازش اطلاعات پرداخت"),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
-
-      navigatorKey.currentState?.pushReplacementNamed(AppRoutes.profile);
-
-      print(uri.queryParameters);
     });
   }
 

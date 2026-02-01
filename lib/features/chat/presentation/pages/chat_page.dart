@@ -233,10 +233,14 @@ class _ChatPageState extends State<ChatPage>
                                     maxWidth:
                                         MediaQuery.sizeOf(context).width * 0.8,
                                   ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.r,
-                                    vertical: 12.r,
-                                  ),
+                                  padding: (m.imageUrl != null)
+                                      ? m.text == ""
+                                            ? EdgeInsets.zero
+                                            : EdgeInsets.only(bottom: 5)
+                                      : EdgeInsets.symmetric(
+                                          horizontal: 12.r,
+                                          vertical: 12.r,
+                                        ),
                                   margin: EdgeInsets.only(bottom: 7.r),
                                   decoration: BoxDecoration(
                                     color: isUser
