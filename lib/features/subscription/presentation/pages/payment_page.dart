@@ -1,14 +1,12 @@
 // lib/features/subscription/presentation/pages/payment_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get_it/get_it.dart';
+import 'package:sewingaiapp/core/routes/app_route.dart';
 import 'package:sewingaiapp/core/utils/constants.dart' as constants;
-import 'package:sewingaiapp/features/auth/domain/usecases/get_cached_token.dart';
 import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
 import 'package:sewingaiapp/injection_container.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:zarinpal/zarinpal.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -22,30 +20,6 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializePayment();
-  }
-
-  Future<void> _initializePayment() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    // اینجا باید با API پرداخت ارتباط برقرار کنی و لینک پرداخت رو بگیری
-    // مثلاً از زرین‌پال، پی‌پینگ یا هر درگاه دیگه
-
-    // برای نمونه:
-    await Future.delayed(Duration(seconds: 2));
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    // بعد از گرفتن لینک پرداخت، WebView رو نمایش میدی
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +36,9 @@ class _PaymentPageState extends State<PaymentPage> {
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.arrow_forward, color: Colors.black),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
           title: Text(
             'پرداخت',
@@ -100,10 +76,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           SizedBox(height: 16.h),
                           _buildInfoRow('محصول:', 'اشتراک پرو $duration ماهه'),
                           SizedBox(height: 12.h),
-                          _buildInfoRow(
-                            'ویژگی‌ها:',
-                            'ارسال عکس به تعداد نامحدود',
-                          ),
+                          _buildInfoRow('ویژگی‌ها:', 'ارسال ۲۰ عکس در روز'),
                           SizedBox(height: 12.h),
                           Divider(),
                           SizedBox(height: 12.h),
@@ -154,11 +127,12 @@ class _PaymentPageState extends State<PaymentPage> {
                       child: SizedBox(
                         width: double.infinity,
                         height: 48.h,
-
                         child: ElevatedButton(
-                          onPressed: () {
-                            _processPayment(widget.planData);
-                          },
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  _processPayment(widget.planData);
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xff3EB9B4),
                             shape: RoundedRectangleBorder(
@@ -204,9 +178,7 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   String _formatPrice(int price) {
-    // فرمت کردن قیمت با کاما
-    final priceInt = price;
-    return priceInt.toString().replaceAllMapped(
+    return price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
@@ -218,34 +190,17 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
-      // اینجا باید با API پرداخت ارتباط برقرار کنی
-      // مثلاً درخواست به زرین‌پال، پی‌پینگ یا ...
-
-      // نمونه:
-      // final response = await http.post(
-      //   Uri.parse('YOUR_PAYMENT_API_URL'),
-      //   body: {
-      //     'amount': widget.planData['price'],
-      //     'description': 'خرید اشتراک ${widget.planData['duration']} ماهه',
-      //   },
-      // );
       PaymentRequest _paymentRequest = PaymentRequest()
-        ..setIsSandBox(
-          true,
-        ) // if your application is in developer mode, then set the sandBox as True otherwise set sandBox as false
+        ..setIsSandBox(true)
         ..setMerchantID(constants.ZarinpalMerchantID)
-        ..setCallbackURL(
-          // "http://sewingapp.ai",
-          "https://sewingaiapp.ir",
-          // "https://sewingapp.liara.run/payment",
-        ); //The callback can be an android scheme or a website URL, you and can pass any data with The callback for both scheme and  URL
+        ..setCallbackURL("https://sewingaiapp.ir");
 
       String? paymentUrl;
       final user = await getIt<GetCurrentUser>().call();
 
       _paymentRequest.setAmount(plan['price'] * 10);
       _paymentRequest.setDescription("خرید اشتراک مربی هوشمند خیاطی");
-      // Call Start payment
+
       ZarinPal().startPayment(_paymentRequest, (
         status,
         paymentGatewayUri,
@@ -260,243 +215,49 @@ class _PaymentPageState extends State<PaymentPage> {
                 "payment_status": "NOK",
               })
               .eq("token", user.token);
-          paymentUrl = paymentGatewayUri; // launch URL in browser
+          paymentUrl = paymentGatewayUri;
         }
       });
 
       await Future.delayed(Duration(seconds: 2));
 
-      // فرض کنیم لینک پرداخت رو گرفتیم
+      if (paymentUrl != null) {
+        // باز کردن لینک پرداخت
+        await launchUrl(Uri.parse(paymentUrl!));
 
-      // نمایش WebView برای پرداخت
-      launchUrl(Uri.parse(paymentUrl!));
+        // بستن صفحه پرداخت و برگشت به چت
+        // deep link بعداً کاربر رو به پروفایل هدایت می‌کنه
+        if (mounted) {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(AppRoutes.chat, (route) => false);
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('خطا در ایجاد درخواست پرداخت'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     } catch (e) {
       print(e);
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطا در برقراری ارتباط با درگاه پرداخت'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطا در برقراری ارتباط با درگاه پرداخت'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
-  }
-
-  // void _showPaymentWebView(String url) {
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-
-  //   Navigator.of(context).push(
-  //     MaterialPageRoute(
-  //       builder: (context) => PaymentWebView(
-  //         url: url,
-  //         onPaymentSuccess: () {
-  //           // بعد از پرداخت موفق
-  //           Navigator.of(context).popUntil((route) => route.isFirst);
-  //           _showSuccessDialog();
-  //         },
-  //         onPaymentFailed: () {
-  //           // در صورت شکست پرداخت
-  //           Navigator.of(context).pop();
-  //           _showFailureDialog();
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _showSuccessDialog() async {
-  //   GetIt getIt = GetIt.instance;
-  //   await getIt<SupabaseClient>()
-  //       .from('users')
-  //       .update({
-  //         'subscription': 'premium',
-  //         'sub_days_remain': widget.planData['duration'] * 30,
-  //         'image_inday': 0,
-  //       })
-  //       .eq('token', getIt<GetCachedToken>());
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (context) => Directionality(
-  //       textDirection: TextDirection.rtl,
-  //       child: AlertDialog(
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(16.r),
-  //         ),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Icon(Icons.check_circle, color: Color(0xff22A45D), size: 64.r),
-  //             SizedBox(height: 16.h),
-  //             Text(
-  //               'پرداخت موفق',
-  //               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
-  //             ),
-  //             SizedBox(height: 8.h),
-  //             Text(
-  //               'اشتراک شما با موفقیت فعال شد.',
-  //               textAlign: TextAlign.center,
-  //               style: TextStyle(fontSize: 14.sp, color: Color(0xff757575)),
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           SizedBox(
-  //             width: double.infinity,
-  //             child: ElevatedButton(
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //               style: ElevatedButton.styleFrom(
-  //                 backgroundColor: Color(0xff3EB9B4),
-  //                 shape: RoundedRectangleBorder(
-  //                   borderRadius: BorderRadius.circular(8.r),
-  //                 ),
-  //               ),
-  //               child: Text(
-  //                 'متوجه شدم',
-  //                 style: TextStyle(
-  //                   color: Colors.white,
-  //                   fontSize: 16.sp,
-  //                   fontWeight: FontWeight.w600,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _showFailureDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => Directionality(
-  //       textDirection: TextDirection.rtl,
-  //       child: AlertDialog(
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(16.r),
-  //         ),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Icon(Icons.error_outline, color: Color(0xffEA3323), size: 64.r),
-  //             SizedBox(height: 16.h),
-  //             Text(
-  //               'پرداخت ناموفق',
-  //               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
-  //             ),
-  //             SizedBox(height: 8.h),
-  //             Text(
-  //               'پرداخت شما با خطا مواجه شد. لطفاً دوباره تلاش کنید.',
-  //               textAlign: TextAlign.center,
-  //               style: TextStyle(fontSize: 14.sp, color: Color(0xff757575)),
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           SizedBox(
-  //             width: double.infinity,
-  //             child: ElevatedButton(
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //               style: ElevatedButton.styleFrom(
-  //                 backgroundColor: Color(0xff3EB9B4),
-  //                 shape: RoundedRectangleBorder(
-  //                   borderRadius: BorderRadius.circular(8.r),
-  //                 ),
-  //               ),
-  //               child: Text(
-  //                 'تلاش مجدد',
-  //                 style: TextStyle(
-  //                   color: Colors.white,
-  //                   fontSize: 16.sp,
-  //                   fontWeight: FontWeight.w600,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-}
-
-// WebView برای نمایش صفحه پرداخت
-class PaymentWebView extends StatefulWidget {
-  final String url;
-  final VoidCallback onPaymentSuccess;
-  final VoidCallback onPaymentFailed;
-
-  const PaymentWebView({
-    super.key,
-    required this.url,
-    required this.onPaymentSuccess,
-    required this.onPaymentFailed,
-  });
-
-  @override
-  State<PaymentWebView> createState() => _PaymentWebViewState();
-}
-
-class _PaymentWebViewState extends State<PaymentWebView> {
-  late WebViewController _controller;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (url) {
-            setState(() {
-              _isLoading = true;
-            });
-          },
-          onUrlChange: (change) {
-            if (change.url!.contains('STATUS=OK')) {
-              widget.onPaymentSuccess();
-            } else if (change.url!.contains('STATUS=NOK')) {
-              widget.onPaymentFailed();
-            }
-          },
-          onPageFinished: (url) {
-            setState(() {
-              _isLoading = false;
-            });
-
-            // چک کردن URL برای تشخیص موفقیت یا شکست پرداخت
-            if (url.contains('STATUS=OK')) {
-              widget.onPaymentSuccess();
-            } else if (url.contains('STATUS=NOK')) {
-              widget.onPaymentFailed();
-            }
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('پرداخت'), backgroundColor: Color(0xff3EB9B4)),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Center(child: CircularProgressIndicator(color: Color(0xff3EB9B4))),
-        ],
-      ),
-    );
   }
 }

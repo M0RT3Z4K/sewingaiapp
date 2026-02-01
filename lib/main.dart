@@ -38,12 +38,10 @@ Future<void> main() async {
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.white, // navigation bar color
-      statusBarColor: Colors.white, // status bar color
+      systemNavigationBarColor: Colors.white,
+      statusBarColor: Colors.white,
     ),
   );
-
-  // final checkAppVersion = CheckAppVersion(versionRepository);
 
   await init();
   runApp(
@@ -98,7 +96,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
     initDeeplink();
   }
 
@@ -119,7 +116,6 @@ class _MyAppState extends State<MyApp> {
 
         print("User from DB: $got_user");
 
-        // ✅ استفاده از navigatorKey.currentContext
         final currentContext = navigatorKey.currentContext;
         if (currentContext == null) {
           print("Navigator context is null");
@@ -128,11 +124,38 @@ class _MyAppState extends State<MyApp> {
 
         if (got_user['payment_authority'] == uri.queryParameters["Authority"]) {
           if (uri.queryParameters["Status"] == "OK") {
+            // پرداخت موفق - به‌روزرسانی اشتراک کاربر
+            final paymentAmount = got_user['payment_amount'];
+            int durationDays = 0;
+
+            // محاسبه تعداد روز بر اساس مبلغ پرداختی
+            if (paymentAmount == 1300000) {
+              // 3 ماهه
+              durationDays = 90;
+            } else if (paymentAmount == 2200000) {
+              // 6 ماهه
+              durationDays = 180;
+            } else if (paymentAmount == 4200000) {
+              // 12 ماهه
+              durationDays = 365;
+            }
+
+            await getIt<supabase.SupabaseClient>()
+                .from("users")
+                .update({
+                  "subscription": "premium",
+                  "sub_days_remain": durationDays,
+                  "payment_status": "OK",
+                  "image_inday": 0,
+                })
+                .eq("token", user.token);
+
             ScaffoldMessenger.of(currentContext).showSnackBar(
               SnackBar(
                 content: Text(
                   "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
                 ),
+                backgroundColor: Color(0xff22A45D),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -140,6 +163,7 @@ class _MyAppState extends State<MyApp> {
             ScaffoldMessenger.of(currentContext).showSnackBar(
               SnackBar(
                 content: Text("پرداخت شما ناموفق بود."),
+                backgroundColor: Color(0xffEA3323),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -148,13 +172,17 @@ class _MyAppState extends State<MyApp> {
           ScaffoldMessenger.of(currentContext).showSnackBar(
             SnackBar(
               content: Text("در پرداخت شما مشکلی به وجود آمده است."),
+              backgroundColor: Color(0xffEA3323),
               behavior: SnackBarBehavior.floating,
             ),
           );
         }
 
-        // ✅ Navigate to profile page using navigatorKey
-        navigatorKey.currentState?.pushReplacementNamed(AppRoutes.profile);
+        // Navigate to profile page and remove all previous routes
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          AppRoutes.profile,
+          (route) => route.settings.name == AppRoutes.chat,
+        );
       } catch (e) {
         print("Error handling deep link: $e");
         final currentContext = navigatorKey.currentContext;
@@ -162,6 +190,7 @@ class _MyAppState extends State<MyApp> {
           ScaffoldMessenger.of(currentContext).showSnackBar(
             SnackBar(
               content: Text("خطا در پردازش اطلاعات پرداخت"),
+              backgroundColor: Color(0xffEA3323),
               behavior: SnackBarBehavior.floating,
             ),
           );

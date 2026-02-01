@@ -22,7 +22,6 @@ import 'package:sewingaiapp/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_event.dart';
 import 'package:sewingaiapp/features/chat/presentation/bloc/chat_state.dart';
 import 'package:sewingaiapp/features/subscription/presentation/widgets/subscription_dialog.dart';
-import 'package:sewingaiapp/injection_container.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -423,14 +422,47 @@ class _ChatPageState extends State<ChatPage>
                                           ),
                                         ),
 
-                                        // 🆕 IconButton با منطق جدید
+                                        // 🆕 IconButton با منطق جدید - محدودیت ۲۰ تا برای پرمیوم
                                         IconButton(
                                           icon: Icon(
                                             Icons.attach_file,
                                             color: Colors.grey[600],
                                           ),
                                           onPressed: messages.isEmpty
-                                              ? state.user.imageInDay < 3
+                                              ? state.user.subscription ==
+                                                        'premium'
+                                                    ? state.user.imageInDay < 20
+                                                          ? () async {
+                                                              print(
+                                                                state
+                                                                    .user
+                                                                    .imageInDay,
+                                                              );
+                                                              final picker =
+                                                                  ImagePicker();
+                                                              picked = await picker
+                                                                  .pickImage(
+                                                                    source: ImageSource
+                                                                        .gallery,
+                                                                  );
+                                                              setState(() {});
+                                                            }
+                                                          : () {
+                                                              // 🔴 نمایش پیام محدودیت برای پرمیوم
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'شما به حداکثر تعداد ارسال عکس روزانه رسیده‌اید (۲۰ عکس)',
+                                                                  ),
+                                                                  behavior:
+                                                                      SnackBarBehavior
+                                                                          .floating,
+                                                                ),
+                                                              );
+                                                            }
+                                                    : state.user.imageInDay < 3
                                                     ? () async {
                                                         print(
                                                           state.user.imageInDay,
@@ -451,6 +483,38 @@ class _ChatPageState extends State<ChatPage>
                                                       }
                                               : messages.first.isLoading
                                               ? null
+                                              : state.user.subscription ==
+                                                    'premium'
+                                              ? state.user.imageInDay < 20
+                                                    ? () async {
+                                                        print(
+                                                          state.user.imageInDay,
+                                                        );
+                                                        final picker =
+                                                            ImagePicker();
+                                                        picked = await picker
+                                                            .pickImage(
+                                                              source:
+                                                                  ImageSource
+                                                                      .gallery,
+                                                            );
+                                                        setState(() {});
+                                                      }
+                                                    : () {
+                                                        // 🔴 نمایش پیام محدودیت برای پرمیوم
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              'شما به حداکثر تعداد ارسال عکس روزانه رسیده‌اید (۲۰ عکس)',
+                                                            ),
+                                                            behavior:
+                                                                SnackBarBehavior
+                                                                    .floating,
+                                                          ),
+                                                        );
+                                                      }
                                               : state.user.imageInDay < 3
                                               ? () async {
                                                   print(state.user.imageInDay);

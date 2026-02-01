@@ -27,12 +27,12 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
             children: [
               // عنوان
               Text(
-                'برای ارسال بیشتر از ۳ عکس روزانه، باید اشتراک پرو را خریداری نمایید.',
+                'برای ارسال بیش از ۳ عکس در روز، اشتراک پرو بخرید.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w500,
-                  height: 1.5,
+                  height: 1.4,
                 ),
               ),
               SizedBox(height: 20.h),
@@ -42,7 +42,7 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                 index: 0,
                 duration: '۳',
                 price: '۱۳۰,۰۰۰',
-                description: 'ارسال عکس به تعداد نامحدود',
+                description: 'ارسال ۲۰ عکس در روز',
               ),
               SizedBox(height: 12.h),
 
@@ -51,7 +51,7 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                 index: 1,
                 duration: '۶',
                 price: '۲۲۰,۰۰۰',
-                description: 'ارسال عکس به تعداد نامحدود',
+                description: 'ارسال ۲۰ عکس در روز',
                 isRecommended: true,
               ),
               SizedBox(height: 12.h),
@@ -61,7 +61,7 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                 index: 2,
                 duration: '۱۲',
                 price: '۴۲۰,۰۰۰',
-                description: 'ارسال عکس به تعداد نامحدود',
+                description: 'ارسال ۲۰ عکس در روز',
               ),
               SizedBox(height: 20.h),
 
@@ -152,7 +152,7 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
         });
       },
       child: Container(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xff3EB9B4).withOpacity(0.1) : Colors.white,
           border: Border.all(
@@ -165,8 +165,8 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
           children: [
             // نمبر پلن
             Container(
-              width: 60.w,
-              height: 60.h,
+              width: 50.w,
+              height: 50.h,
               decoration: BoxDecoration(
                 color: isSelected ? Color(0xff3EB9B4) : Color(0xffF5F5F5),
                 borderRadius: BorderRadius.circular(8.r),
@@ -175,14 +175,14 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                 child: Text(
                   duration,
                   style: TextStyle(
-                    fontSize: 32.sp,
+                    fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                     color: isSelected ? Colors.white : Colors.black,
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 10.w),
 
             // جزئیات
             Expanded(
@@ -191,18 +191,21 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        'اشتراک پرو $duration ماهه',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          'پرو $duration ماهه',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (isRecommended) ...[
-                        SizedBox(width: 8.w),
+                        SizedBox(width: 6.w),
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
+                            horizontal: 6.w,
                             vertical: 2.h,
                           ),
                           decoration: BoxDecoration(
@@ -213,7 +216,7 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                             'پیشنهادی',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10.sp,
+                              fontSize: 9.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -224,13 +227,14 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                   SizedBox(height: 4.h),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 12.sp, color: Color(0xff757575)),
+                    style: TextStyle(fontSize: 11.sp, color: Color(0xff757575)),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 4.h),
                   Text(
                     '$price تومان',
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
                       color: Color(0xff3EB9B4),
                     ),
