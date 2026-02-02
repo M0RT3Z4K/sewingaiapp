@@ -62,7 +62,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       Message botMessage;
       if (event.reply == 'بله') {
         botResponse =
-            'عالی! لطفا از طریق لینک زیر وارد کانال ایتا شوید و توضیحات کامل را مطالعه کنید:\n\nhttps://eitaa.com/joinchat/581108722C65154713e7';
+            'عالی! لطفا از طریق لینک زیر وارد کانال ایتا شوید و توضیحات کامل را دریافت کنید.';
         botMessage = Message(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           text: botResponse,

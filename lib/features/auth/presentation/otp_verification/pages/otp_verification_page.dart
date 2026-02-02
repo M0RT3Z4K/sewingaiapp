@@ -143,7 +143,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                 ),
                               ),
                               Text(
-                                "V 1.0.0",
+                                "V 1.1.0",
                                 style: TextStyle(
                                   color: Color(0xffc5c5c5),
                                   fontFamily: "vazir",

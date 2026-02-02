@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       Text(
-                        "V 1.0.0",
+                        "V 1.1.0",
                         style: TextStyle(
                           color: Color(0xffc5c5c5),
                           fontFamily: "vazir",
@@ -317,7 +317,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       Text(
-                        "V 1.0.0",
+                        "V 1.1.0",
                         style: TextStyle(
                           color: Color(0xffc5c5c5),
                           fontFamily: "vazir",

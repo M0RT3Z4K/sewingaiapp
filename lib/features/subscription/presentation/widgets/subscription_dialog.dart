@@ -40,8 +40,8 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
               // پلن 3 ماهه
               _buildPlanCard(
                 index: 0,
-                duration: '۳',
-                price: '۱۳۰,۰۰۰',
+                duration: '۱',
+                price: '۴۵,۰۰۰',
                 description: 'ارسال ۲۰ عکس در روز',
               ),
               SizedBox(height: 12.h),
@@ -49,8 +49,8 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
               // پلن 6 ماهه (پیشنهادی)
               _buildPlanCard(
                 index: 1,
-                duration: '۶',
-                price: '۲۲۰,۰۰۰',
+                duration: '۳',
+                price: '۱۳۰,۰۰۰',
                 description: 'ارسال ۲۰ عکس در روز',
                 isRecommended: true,
               ),
@@ -59,8 +59,8 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
               // پلن 12 ماهه
               _buildPlanCard(
                 index: 2,
-                duration: '۱۲',
-                price: '۴۲۰,۰۰۰',
+                duration: '۶',
+                price: '۲۲۰,۰۰۰',
                 description: 'ارسال ۲۰ عکس در روز',
               ),
               SizedBox(height: 20.h),
@@ -98,15 +98,15 @@ class _SubscriptionDialogState extends State<SubscriptionDialog> {
                           arguments: {
                             'planIndex': _selectedPlan,
                             'duration': _selectedPlan == 0
+                                ? 1
+                                : _selectedPlan == 1
                                 ? 3
-                                : _selectedPlan == 1
-                                ? 6
-                                : 12,
+                                : 6,
                             'price': _selectedPlan == 0
-                                ? 130000
+                                ? 45000
                                 : _selectedPlan == 1
-                                ? 220000
-                                : 420000,
+                                ? 130000
+                                : 220000,
                           },
                         );
                       },

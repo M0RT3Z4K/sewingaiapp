@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
@@ -356,11 +357,30 @@ class _ChatPageState extends State<ChatPage>
                                                 padding: EdgeInsets.only(
                                                   left: 4.w,
                                                 ),
-                                                child:
-                                                    LoadingAnimationWidget.progressiveDots(
-                                                      color: Colors.grey,
-                                                      size: 27,
-                                                    ),
+                                                child: SpinKitThreeBounce(
+                                                  size: 10,
+                                                  itemBuilder:
+                                                      (
+                                                        BuildContext context,
+                                                        int index,
+                                                      ) {
+                                                        return DecoratedBox(
+                                                          decoration: BoxDecoration(
+                                                            color: index.isEven
+                                                                ? Colors.grey
+                                                                : Colors
+                                                                      .grey
+                                                                      .shade400,
+                                                            borderRadius:
+                                                                BorderRadius.all(
+                                                                  Radius.circular(
+                                                                    50,
+                                                                  ),
+                                                                ),
+                                                          ),
+                                                        );
+                                                      },
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -725,9 +745,8 @@ class _ChatPageState extends State<ChatPage>
           SizedBox(width: 8.w),
           Expanded(
             child: GestureDetector(
-              onTap: () => launchUrl(
-                Uri.parse("https://eitaa.com/joinchat/581108722C65154713e7"),
-              ),
+              onTap: () =>
+                  launchUrl(Uri.parse("https://eitaa.com/khayati_maryambanoo")),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 10.h),
                 decoration: BoxDecoration(
@@ -736,7 +755,7 @@ class _ChatPageState extends State<ChatPage>
                 ),
                 child: Center(
                   child: Text(
-                    "توضیحات بیشتر",
+                    "انتقال به کانال",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14.sp,

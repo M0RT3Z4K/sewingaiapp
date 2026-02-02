@@ -43,9 +43,7 @@ class HomePage extends StatelessWidget {
                       label: 'دوره نازک دوز خیاطی زیتون',
                       onTap: () {
                         _launchUrl(
-                          Uri.parse(
-                            "https://eitaa.com/joinchat/581108722C65154713e7",
-                          ),
+                          Uri.parse("https://eitaa.com/khayati_maryambanoo"),
                         );
                       },
                       logo: Image.asset(

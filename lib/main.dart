@@ -129,15 +129,15 @@ class _MyAppState extends State<MyApp> {
             int durationDays = 0;
 
             // محاسبه تعداد روز بر اساس مبلغ پرداختی
-            if (paymentAmount == 1300000) {
+            if (paymentAmount == 450000) {
               // 3 ماهه
+              durationDays = 30;
+            } else if (paymentAmount == 1300000) {
+              // 6 ماهه
               durationDays = 90;
             } else if (paymentAmount == 2200000) {
-              // 6 ماهه
-              durationDays = 180;
-            } else if (paymentAmount == 4200000) {
               // 12 ماهه
-              durationDays = 365;
+              durationDays = 180;
             }
 
             await getIt<supabase.SupabaseClient>()
@@ -218,6 +218,16 @@ class _MyAppState extends State<MyApp> {
           create: (_) =>
               VersionBloc(widget.checkAppVersion)..add(CheckVersionEvent()),
         ),
+        // BlocProvider(
+        //   create: (_) => AuthBloc(
+        //     getCachedToken: widget.getCachedToken,
+        //     loginOrSignup: widget.loginOrSignup,
+        //     saveToken: widget.saveToken,
+        //     sendOtp: widget.sendOtp,
+        //     verifyOtp: widget.verifyOtp,
+        //     getUserWithToken: widget.getUserWithToken,
+        //   )..add(PageInitial()),
+        // ),
         BlocProvider(
           create: (_) => AuthBloc(
             getCachedToken: widget.getCachedToken,
@@ -226,7 +236,7 @@ class _MyAppState extends State<MyApp> {
             sendOtp: widget.sendOtp,
             verifyOtp: widget.verifyOtp,
             getUserWithToken: widget.getUserWithToken,
-          )..add(PageInitial()),
+          ), // ✅ event رو نزن، SplashPage خودش میزنه
         ),
         BlocProvider(create: (_) => getIt<PhoneBloc>()),
         BlocProvider(create: (_) => getIt<OtpBloc>()),
@@ -245,7 +255,7 @@ class _MyAppState extends State<MyApp> {
         child: MaterialApp(
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
-          title: 'Clean Chat AI',
+          title: 'مربی هوشمند خیاطی',
           themeMode: ThemeMode.system,
           theme: ThemeData(primarySwatch: Colors.blue, fontFamily: "IRANSans"),
           initialRoute: AppRoutes.splash,
