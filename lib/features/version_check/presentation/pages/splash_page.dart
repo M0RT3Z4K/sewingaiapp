@@ -24,6 +24,8 @@ class _SplashPageState extends State<SplashPage> {
             if (versionState is VersionLoadSuccess) {
               final appVersion = versionState.appVersion;
 
+              print(appVersion);
+
               // اگر ورژن جدید وجود داره
               if (appVersion.latestVersion != versionState.Version) {
                 showDialog(

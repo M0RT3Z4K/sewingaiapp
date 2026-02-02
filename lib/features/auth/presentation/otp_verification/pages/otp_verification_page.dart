@@ -93,7 +93,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(state.message),
+                  ),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -106,7 +109,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             if (state is OtpResent) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('کد مجدداً ارسال شد'),
+                  content: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text('کد مجدداً ارسال شد'),
+                  ),
                   behavior: SnackBarBehavior.floating,
                 ),
               );

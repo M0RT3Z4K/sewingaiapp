@@ -152,8 +152,12 @@ class _MyAppState extends State<MyApp> {
 
             ScaffoldMessenger.of(currentContext).showSnackBar(
               SnackBar(
-                content: Text(
-                  "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+                content: Directionality(
+                  textDirection: TextDirection.rtl,
+
+                  child: Text(
+                    "پرداخت با موفقیت انجام شد و اشتراک شما فعال شده است.",
+                  ),
                 ),
                 backgroundColor: Color(0xff22A45D),
                 behavior: SnackBarBehavior.floating,
@@ -162,7 +166,10 @@ class _MyAppState extends State<MyApp> {
           } else {
             ScaffoldMessenger.of(currentContext).showSnackBar(
               SnackBar(
-                content: Text("پرداخت شما ناموفق بود."),
+                content: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text("پرداخت شما ناموفق بود."),
+                ),
                 backgroundColor: Color(0xffEA3323),
                 behavior: SnackBarBehavior.floating,
               ),
@@ -171,7 +178,10 @@ class _MyAppState extends State<MyApp> {
         } else {
           ScaffoldMessenger.of(currentContext).showSnackBar(
             SnackBar(
-              content: Text("در پرداخت شما مشکلی به وجود آمده است."),
+              content: Directionality(
+                textDirection: TextDirection.rtl,
+                child: Text("در پرداخت شما مشکلی به وجود آمده است."),
+              ),
               backgroundColor: Color(0xffEA3323),
               behavior: SnackBarBehavior.floating,
             ),
@@ -179,17 +189,18 @@ class _MyAppState extends State<MyApp> {
         }
 
         // Navigate to profile page and remove all previous routes
-        navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          AppRoutes.profile,
-          (route) => route.settings.name == AppRoutes.chat,
-        );
+        navigatorKey.currentState?.pushNamed(AppRoutes.chat);
+        navigatorKey.currentState?.pushNamed(AppRoutes.profile);
       } catch (e) {
         print("Error handling deep link: $e");
         final currentContext = navigatorKey.currentContext;
         if (currentContext != null) {
           ScaffoldMessenger.of(currentContext).showSnackBar(
             SnackBar(
-              content: Text("خطا در پردازش اطلاعات پرداخت"),
+              content: Directionality(
+                textDirection: TextDirection.rtl,
+                child: Text("خطا در پردازش اطلاعات پرداخت"),
+              ),
               backgroundColor: Color(0xffEA3323),
               behavior: SnackBarBehavior.floating,
             ),

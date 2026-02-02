@@ -306,9 +306,6 @@ class _ChatPageState extends State<ChatPage>
                                                   width: 200,
                                                 ),
                                               ),
-                                            if (m.imageUrl != null ||
-                                                m.imageFile != null)
-                                              SizedBox(height: 3.h),
 
                                             buildMessageText(
                                               m.text,
@@ -495,8 +492,13 @@ class _ChatPageState extends State<ChatPage>
                                                                 context,
                                                               ).showSnackBar(
                                                                 SnackBar(
-                                                                  content: Text(
-                                                                    'شما به حداکثر تعداد ارسال عکس روزانه رسیده‌اید (۲۰ عکس)',
+                                                                  content: Directionality(
+                                                                    textDirection:
+                                                                        TextDirection
+                                                                            .rtl,
+                                                                    child: Text(
+                                                                      'شما به حداکثر تعداد ارسال عکس روزانه رسیده‌اید (۲۰ عکس)',
+                                                                    ),
                                                                   ),
                                                                   behavior:
                                                                       SnackBarBehavior

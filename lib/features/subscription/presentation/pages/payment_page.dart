@@ -1,7 +1,6 @@
 // lib/features/subscription/presentation/pages/payment_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sewingaiapp/core/routes/app_route.dart';
 import 'package:sewingaiapp/core/utils/constants.dart' as constants;
 import 'package:sewingaiapp/features/chat/domain/usecases/get_current_user.dart';
 import 'package:sewingaiapp/injection_container.dart';
@@ -35,7 +34,7 @@ class _PaymentPageState extends State<PaymentPage> {
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(Icons.arrow_forward, color: Colors.black),
+            icon: Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -191,7 +190,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
     try {
       PaymentRequest _paymentRequest = PaymentRequest()
-        ..setIsSandBox(true)
+        ..setIsSandBox(false)
         ..setMerchantID(constants.ZarinpalMerchantID)
         ..setCallbackURL("https://sewingaiapp.ir");
 
@@ -228,9 +227,7 @@ class _PaymentPageState extends State<PaymentPage> {
         // بستن صفحه پرداخت و برگشت به چت
         // deep link بعداً کاربر رو به پروفایل هدایت می‌کنه
         if (mounted) {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil(AppRoutes.chat, (route) => false);
+          Navigator.of(context).pop();
         }
       } else {
         setState(() {
@@ -239,7 +236,10 @@ class _PaymentPageState extends State<PaymentPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('خطا در ایجاد درخواست پرداخت'),
+              content: Directionality(
+                textDirection: TextDirection.rtl,
+                child: Text('خطا در ایجاد درخواست پرداخت'),
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -253,7 +253,10 @@ class _PaymentPageState extends State<PaymentPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطا در برقراری ارتباط با درگاه پرداخت'),
+            content: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text('خطا در برقراری ارتباط با درگاه پرداخت'),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );

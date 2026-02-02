@@ -211,7 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                               SizedBox(height: 12.h),
-                              _buildFeatureItem('ارسال عکس نامحدود'),
+                              _buildFeatureItem('ارسال ۲۰ عکس در روز'),
                               // _buildFeatureItem('پشتیبانی اختصاصی'),
                               // _buildFeatureItem('دسترسی به آموزش‌های ویژه'),
                             ],

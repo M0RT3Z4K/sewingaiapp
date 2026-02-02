@@ -40,7 +40,10 @@ class _LoginPageState extends State<LoginPage> {
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text(state.message),
+                ),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -73,11 +76,15 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           if (state is AuthInitial) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(color: Color(0xff3EB9B4)),
+            );
           }
 
           if (state is Authenticated) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(color: Color(0xff3EB9B4)),
+            );
           }
 
           if (state is OtpSent) {

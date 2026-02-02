@@ -46,8 +46,11 @@ class AppRoutes {
 
       default:
         return MaterialPageRoute(
-          builder: (_) =>
-              const Scaffold(body: Center(child: Text("Page not found"))),
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xff3EB9B4)),
+            ),
+          ), //Text("Page not found")
         );
     }
   }

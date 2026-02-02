@@ -47,7 +47,10 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
           if (state is PhoneError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text(state.message),
+                ),
                 behavior: SnackBarBehavior.floating,
               ),
             );
