@@ -327,7 +327,7 @@ class _ChatPageState extends State<ChatPage>
                                             children: [
                                               _buildSuggestionButton('بله'),
                                               SizedBox(width: 8.w),
-                                              _buildSuggestionButton('خیر'),
+                                              _buildSuggestionButton('فعلا نه'),
                                             ],
                                           ),
                                         ],

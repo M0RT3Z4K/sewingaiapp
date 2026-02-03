@@ -103,7 +103,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             }
 
             if (state is OtpVerified) {
-              Navigator.of(context).pushReplacementNamed('/chat');
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/chat', (_) => false);
+              // Navigator.of(context).pushReplacementNamed('/chat');
             }
 
             if (state is OtpResent) {
